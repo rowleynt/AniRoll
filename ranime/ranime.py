@@ -123,7 +123,8 @@ class Cache:
 
     def _update(self) -> dict:
         self._delete_old_cache()
-        id_list = self._main._retrieve_user_list()  # <--------- FIX ME!!!
+        id_list = self._main._retrieve_user_list()
+        print("test")
         id_list.sort()
         print(id_list)
         watched_list = {
