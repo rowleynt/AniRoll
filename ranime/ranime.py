@@ -92,9 +92,7 @@ class Ranime:
     def _collapse_search_list(self, search_list) -> dict:
         index = randrange(0, len(search_list))
         if self._username:
-            # print("before cache.read()")
             user_cache = self.cache.read()
-            # print("USER CACHE: ", user_cache)
             if search_list[index]['id'] in user_cache['LIST']:
                 del search_list[index]
                 return self._collapse_search_list(search_list)
@@ -102,7 +100,6 @@ class Ranime:
         return search_list[index]
 
 
-# TODO: program crashes if cache for username doesn't exist
 class Cache:
     def __init__(self, main):
         self._main = main
@@ -124,9 +121,7 @@ class Cache:
     def _update(self) -> dict:
         self._delete_old_cache()
         id_list = self._main._retrieve_user_list()
-        print("test")
         id_list.sort()
-        print(id_list)
         watched_list = {
             self._user: {
                 'UPDATED': str(date.today()),
