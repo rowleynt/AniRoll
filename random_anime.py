@@ -18,5 +18,5 @@ def format_output(anime):
 
 
 if __name__ == "__main__":
-    ranime = Ranime(username='dietsoda', exclude_formats=['MOVIE', 'OVA', 'MUSIC'], user_cache_directory='cache')
+    ranime = Ranime(username='dietsoda', exclude_formats=['MOVIE', 'OVA', 'MUSIC', 'TV_SHORT'], user_cache_directory='cache')
     print(format_output(ranime.find()))

@@ -17,7 +17,7 @@ class Ranime:
                 lowest_score=69,
                 highest_score=100,
                 earliest_year=1900,
-                latest_year=date.today().year,
+                latest_year=int(date.today().year),
                 num_pages_returned=40,
                 exclude_formats=[],
                 exclude_genres=[],
@@ -30,8 +30,8 @@ class Ranime:
         self._use_account = use_account
         self._score_low = lowest_score
         self._score_high = highest_score
-        self._earliest_year = earliest_year
-        self._latest_year = latest_year
+        self._earliest_year = earliest_year * 10000  # pad with 4 zeroes
+        self._latest_year = latest_year * 10000  # pad with 4 zeroes
         self._num_pages = num_pages_returned
         self._exclude_formats = exclude_formats
         self._exclude_genres = exclude_genres
@@ -61,12 +61,12 @@ class Ranime:
 
     def _get_entries_by_score_query(self) -> str:
         nl = '{\n'  # let me put \n directly into f-strings >:(
-        query_string = 'query AnimeByScores($score_low: Int, $score_high: Int, $exclude_formats: [MediaFormat]) {'
+        query_string = 'query AnimeByScores($score_low: Int, $score_high: Int, $year_low: FuzzyDateInt, $year_high: FuzzyDateInt, $exclude_formats: [MediaFormat], $exclude_genres: [String]) {'
         for i in range(self._num_pages):
             query_string += (
                 "\n"
                 f"  Page{i}: Page(page: {i}, perPage: 50) {nl}"
-                f"    media(type: ANIME, averageScore_greater: $score_low, averageScore_lesser: $score_high, format_not_in: $exclude_formats) {nl}"
+                f"    media(type: ANIME, averageScore_greater: $score_low, averageScore_lesser: $score_high, startDate_greater: $year_low, startDate_lesser: $year_high, format_not_in: $exclude_formats, genre_not_in: $exclude_genres) {nl}"
                 "      id\n"
                 "      title {\n"
                 "        english\n"
@@ -80,6 +80,7 @@ class Ranime:
                 "      }\n"
                 "  }"
             )
+        # print(query_string + '}')
         return query_string + '}'
 
     def _retrieve_user_list(self) -> list:
@@ -95,7 +96,10 @@ class Ranime:
         variables = {
             'score_low': self._score_low,
             'score_high': self._score_high,
-            'exclude_formats': self._exclude_formats
+            'year_low': self._earliest_year,
+            'year_high': self._latest_year,
+            'exclude_formats': self._exclude_formats,
+            'exclude_genres': self._exclude_genres
         }
         retrieved_search_list = requests.post(self._url, json={'query': self._get_entries_by_score_query, 'variables': variables}).json()['data']
         return self._make_full_search_list(retrieved_search_list)
