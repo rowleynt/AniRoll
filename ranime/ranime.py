@@ -9,8 +9,19 @@ from random import randrange
 
 
 class Ranime:
-    def __init__(self, url='https://graphql.anilist.co', use_account=False, username=None, score_low=69, score_high=100, 
-                num_pages=40, exclude_formats=[], cache_user_list=True, user_cache_directory='cache', user_cache_lifetime=60):
+    def __init__(
+                self,
+                url='https://graphql.anilist.co',
+                use_account=False,
+                username=None,
+                score_low=69,
+                score_high=100,
+                num_pages=40,
+                exclude_formats=[],
+                cache_user_list=True,
+                user_cache_directory='cache',
+                user_cache_lifetime=60
+            ):
         self._url = url
         self._username = username
         self._use_account = use_account
