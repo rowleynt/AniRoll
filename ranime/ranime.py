@@ -11,18 +11,18 @@ from random import randrange
 class Ranime:
     def __init__(
                 self,
-                url='https://graphql.anilist.co',
-                username=None,
-                lowest_score=69,
-                highest_score=100,
-                earliest_year=1900,
-                latest_year=int(date.today().year),
-                num_pages_returned=40,
-                exclude_formats=[],
-                exclude_genres=[],
-                cache_user_list=True,
-                user_cache_directory='cache',
-                user_cache_lifetime=60
+                url: str = 'https://graphql.anilist.co',
+                username: str = None,
+                lowest_score: int = 69,
+                highest_score: int = 100,
+                earliest_year: int = 1000,
+                latest_year: int = int(date.today().year),
+                num_pages_returned: int = 40,
+                exclude_formats: list(str) = [],
+                exclude_genres: list(str) = [],
+                cache_user_list: bool = True,
+                user_cache_directory: str = 'cache',
+                user_cache_lifetime: int = 60
             ):
         self._url = url
         self._username = username
