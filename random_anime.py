@@ -20,5 +20,5 @@ def format_output(anime):
 
 
 if __name__ == "__main__":
-    ranime = Ranime(username='dietsoda', exclude_formats=['MOVIE', 'OVA', 'MUSIC', 'TV_SHORT'], user_cache_directory='cache', latest_year=2022)
+    ranime = Ranime(username='dietsoda', exclude_formats=['MOVIE', 'OVA', 'MUSIC', 'TV_SHORT', 'SPECIAL'], user_cache_directory='cache', earliest_year=2000)
     print(format_output(ranime.roll()))

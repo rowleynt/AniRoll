@@ -5,14 +5,13 @@ from os import makedirs, getcwd, path, remove
 from datetime import date, datetime
 from random import randrange
 
-# this code is absolutely cursed
+# this code is absolutely cursed (but less cursed than it was before!!)
 
 
 class Ranime:
     def __init__(
                 self,
                 url='https://graphql.anilist.co',
-                use_account=False,
                 username=None,
                 lowest_score=69,
                 highest_score=100,
@@ -27,7 +26,6 @@ class Ranime:
             ):
         self._url = url
         self._username = username
-        self._use_account = use_account
         self._score_low = lowest_score
         self._score_high = highest_score
         self._earliest_year = earliest_year * 10000  # pad with 4 zeroes
@@ -122,7 +120,7 @@ class Ranime:
             search_list += search_dict[f'Page{i}']['media']
         if search_list:
             return self._collapse_search_list(search_list)
-        return self._no_results()
+        return search_list
 
     def _collapse_search_list(self, search_list) -> list:
         index = randrange(0, len(search_list))
@@ -133,9 +131,6 @@ class Ranime:
                 return self._collapse_search_list(search_list)
             return search_list[index]
         return search_list[index]
-
-    def _no_results(self) -> list:
-        return []
 
 
 class Cache:
