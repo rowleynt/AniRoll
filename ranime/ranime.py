@@ -56,7 +56,7 @@ class Ranime:
         self._get_entries_by_score_query = self._get_entries_by_score_query()
         self.cache = Cache(self)
 
-    def find(self) -> dict:
+    def roll(self) -> dict:
         return self._retrieve_search_list()
 
     def _get_entries_by_score_query(self) -> str:
@@ -85,7 +85,13 @@ class Ranime:
 
     def _retrieve_user_list(self) -> list:
         variables = {'username': self._username}
-        full_list_raw = requests.post(self._url, json={'query': self._get_full_user_list_query, 'variables': variables}).json()['data']['MediaListCollection']['lists']  # lol
+        full_list_raw = requests.post(
+            self._url,
+            json={
+                    'query': self._get_full_user_list_query,
+                    'variables': variables
+                 }
+            ).json()['data']['MediaListCollection']['lists']
         full_list = []
         for list in full_list_raw:
             temp_list = [entry['mediaId'] for entry in list['entries']]
@@ -101,16 +107,24 @@ class Ranime:
             'exclude_formats': self._exclude_formats,
             'exclude_genres': self._exclude_genres
         }
-        retrieved_search_list = requests.post(self._url, json={'query': self._get_entries_by_score_query, 'variables': variables}).json()['data']
+        retrieved_search_list = requests.post(
+            self._url,
+            json={
+                    'query': self._get_entries_by_score_query,
+                    'variables': variables
+                 }
+            ).json()['data']
         return self._make_full_search_list(retrieved_search_list)
 
     def _make_full_search_list(self, search_dict) -> list:
         search_list = []
         for i in range(self._num_pages):
             search_list += search_dict[f'Page{i}']['media']
-        return self._collapse_search_list(search_list)
+        if search_list:
+            return self._collapse_search_list(search_list)
+        return self._no_results()
 
-    def _collapse_search_list(self, search_list) -> dict:
+    def _collapse_search_list(self, search_list) -> list:
         index = randrange(0, len(search_list))
         if self._username:
             user_cache = self.cache.read()
@@ -119,6 +133,9 @@ class Ranime:
                 return self._collapse_search_list(search_list)
             return search_list[index]
         return search_list[index]
+
+    def _no_results(self) -> list:
+        return []
 
 
 class Cache:
