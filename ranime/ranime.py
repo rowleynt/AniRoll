@@ -38,7 +38,12 @@ class Ranime:
         self._user_cache_lifetime = user_cache_lifetime
         self._get_full_user_list_query = '''
         query GetEntireUserList($username: String) {
-            MediaListCollection(userName: $username, type: ANIME, forceSingleCompletedList: true) {
+            MediaListCollection(
+                    userName: $username,
+                    type: ANIME,
+                    forceSingleCompletedList: true
+                )
+            {
                 user {
                     name
                 }
@@ -58,27 +63,32 @@ class Ranime:
         return self._retrieve_search_list()
 
     def _get_entries_by_score_query(self) -> str:
-        nl = '{\n'  # let me put \n directly into f-strings >:(
         query_string = 'query AnimeByScores($score_low: Int, $score_high: Int, $year_low: FuzzyDateInt, $year_high: FuzzyDateInt, $exclude_formats: [MediaFormat], $exclude_genres: [String]) {'
         for i in range(self._num_pages):
-            query_string += (
-                "\n"
-                f"  Page{i}: Page(page: {i}, perPage: 50) {nl}"
-                f"    media(type: ANIME, averageScore_greater: $score_low, averageScore_lesser: $score_high, startDate_greater: $year_low, startDate_lesser: $year_high, format_not_in: $exclude_formats, genre_not_in: $exclude_genres) {nl}"
-                "      id\n"
-                "      title {\n"
-                "        english\n"
-                "        romaji\n"
-                "      }\n"
-                "      format\n"
-                "      episodes\n"
-                "      averageScore\n"
-                "      genres\n"
-                "      seasonYear\n"
-                "      }\n"
-                "  }"
-            )
-        # print(query_string + '}')
+            query_string += f'''
+                Page{i}: Page(page: {i}, perPage: 50) {{
+                    media(
+                        type: ANIME,
+                        averageScore_greater: $score_low,
+                        averageScore_lesser: $score_high,
+                        startDate_greater: $year_low,
+                        startDate_lesser: $year_high,
+                        format_not_in: $exclude_formats,
+                        genre_not_in: $exclude_genres
+                    ) {{
+                        id
+                        title {{
+                            english
+                            romaji
+                        }}
+                        format
+                        episodes
+                        averageScore
+                        genres
+                        seasonYear
+                    }}
+                }}
+            '''
         return query_string + '}'
 
     def _retrieve_user_list(self) -> list:
@@ -125,7 +135,7 @@ class Ranime:
     def _collapse_search_list(self, search_list) -> list:
         index = randrange(0, len(search_list))
         if self._username:
-            user_cache = self.cache.read()
+            user_cache = self.cache._read()
             if search_list[index]['id'] in user_cache['LIST']:
                 del search_list[index]
                 return self._collapse_search_list(search_list)
@@ -142,7 +152,7 @@ class Cache:
         self._days_to_update = main._user_cache_lifetime
         makedirs(f'{self._user_cache_dir}', exist_ok=True)
 
-    def read(self) -> dict:  # make better smile
+    def _read(self) -> dict:  # make better smile
         if path.exists(f'{getcwd()}/{self._user_cache_dir}/{self._user}.json'):
             with open(f'{getcwd()}/{self._user_cache_dir}/{self._user}.json', 'r') as user_cache:
                 read_cache = json.load(user_cache)[self._user]
