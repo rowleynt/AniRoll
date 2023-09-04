@@ -7,6 +7,9 @@ from random import randrange
 
 # this code is absolutely cursed (but less cursed than it was before!!)
 
+ALLOWED_FORMATS = ["TV", "TV_SHORT", "MOVIE", "SPECIAL", "OVA", "ONA", "MUSIC"]
+# ALLOWED_GENRES = []
+
 
 class Ranime:
     def __init__(
@@ -18,8 +21,8 @@ class Ranime:
                 earliest_year: int = 1000,
                 latest_year: int = int(date.today().year),
                 num_pages_returned: int = 40,
-                exclude_formats: list(str) = [],
-                exclude_genres: list(str) = [],
+                exclude_formats: list = [],
+                exclude_genres: list = [],
                 cache_user_list: bool = True,
                 user_cache_directory: str = 'cache',
                 user_cache_lifetime: int = 60
@@ -31,7 +34,7 @@ class Ranime:
         self._earliest_year = earliest_year * 10000  # pad with 4 zeroes
         self._latest_year = latest_year * 10000  # pad with 4 zeroes
         self._num_pages = num_pages_returned
-        self._exclude_formats = exclude_formats
+        self._exclude_formats = self._sanitize_exclude_formats(exclude_formats)
         self._exclude_genres = exclude_genres
         self._cache_user_list = cache_user_list
         self._user_cache_directory = user_cache_directory
@@ -134,13 +137,17 @@ class Ranime:
 
     def _collapse_search_list(self, search_list) -> list:
         index = randrange(0, len(search_list))
-        if self._username:
+        if self._cache_user_list:
             user_cache = self.cache._read()
             if search_list[index]['id'] in user_cache['LIST']:
                 del search_list[index]
                 return self._collapse_search_list(search_list)
             return search_list[index]
         return search_list[index]
+
+    def _sanitize_exclude_formats(self, format_list) -> list:
+        return [item.upper() for item in format_list
+                if item in ALLOWED_FORMATS]
 
 
 class Cache:
@@ -150,11 +157,13 @@ class Cache:
         self._user = main._username
         self._user_cache_dir = main._user_cache_directory
         self._days_to_update = main._user_cache_lifetime
-        makedirs(f'{self._user_cache_dir}', exist_ok=True)
+        if main._cache_user_list:
+            self._path = f'{getcwd()}/{self._user_cache_dir}/{self._user}.json'
+            makedirs(f'{self._user_cache_dir}', exist_ok=True)
 
     def _read(self) -> dict:  # make better smile
-        if path.exists(f'{getcwd()}/{self._user_cache_dir}/{self._user}.json'):
-            with open(f'{getcwd()}/{self._user_cache_dir}/{self._user}.json', 'r') as user_cache:
+        if path.exists(self._path):
+            with open(self._path, 'r') as user_cache:
                 read_cache = json.load(user_cache)[self._user]
             if self._requires_update(read_cache):
                 return self._update()
@@ -172,14 +181,16 @@ class Cache:
             }
         }
         json_obj = json.dumps(watched_list, indent=4)
-        with open(f'{getcwd()}/{self._user_cache_dir}/{self._user}.json', 'w') as user_cache:
+        with open(self._path, 'w') as user_cache:
             user_cache.write(json_obj)
         return watched_list[self._user]
 
     def _delete_old_cache(self):
-        if path.exists(f'{getcwd()}/{self._user_cache_dir}/{self._user}.json'):
-            remove(f'{getcwd()}/{self._user_cache_dir}/{self._user}.json')
+        if path.exists(self._path):
+            remove(self._path)
 
     def _requires_update(self, cache_file) -> bool:
-        delta = datetime.today() - datetime.strptime(cache_file['UPDATED'], '%Y-%m-%d')
+        delta = datetime.today() - datetime.strptime(
+            cache_file['UPDATED'],
+            '%Y-%m-%d')
         return delta.days >= self._days_to_update
