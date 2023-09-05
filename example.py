@@ -22,7 +22,8 @@ def format_output(anime):
 if __name__ == "__main__":
     aniroll = AniRoll(
         username='dietsoda',
+        cache_user_list=True,
         exclude_formats=['MOVIE', 'OVA', 'MUSIC', 'TV_SHORT', 'SPECIAL'],
-        user_cache_directory='cache'
+        user_cache_directory='cache',
     )
     print(format_output(aniroll.roll()))

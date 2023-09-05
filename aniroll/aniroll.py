@@ -60,7 +60,8 @@ class AniRoll:
         }
         '''
         self._get_entries_by_score_query = self._get_entries_by_score_query()
-        self.cache = Cache(self)
+        if self._cache_user_list:
+            self.cache = Cache(self)
 
     def roll(self) -> dict:
         return self._retrieve_search_list()
@@ -138,11 +139,19 @@ class AniRoll:
     def _collapse_search_list(self, search_list) -> list:
         index = randrange(0, len(search_list))
         if self._cache_user_list:
-            user_cache = self.cache._read()
-            if search_list[index]['id'] in user_cache['LIST']:
-                del search_list[index]
-                return self._collapse_search_list(search_list)
+            user_list = self.cache._read()
+            return self._collapse(search_list, user_list)
+        elif self._username:
+            user_list = {'LIST': self._retrieve_user_list()}
+            return self._collapse(search_list, user_list)
+        else:
             return search_list[index]
+
+    def _collapse(self, search_list, user_list) -> list:
+        index = randrange(0, len(search_list))
+        if search_list[index]['id'] in user_list['LIST']:
+            del search_list[index]
+            return self._collapse(search_list, user_list)
         return search_list[index]
 
     def _sanitize_exclude_formats(self, format_list) -> list:
